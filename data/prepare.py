@@ -20,6 +20,9 @@ df = df[df['item_id'].isin(item_counts[item_counts >= 5].index)]
 
 print(f"After filtering: {df.shape}")
 
+print(f"Items after filtering: {df['item_id'].nunique()}")
+print(f"Avg ratings per item: {len(df) / df['item_id'].nunique():.2f}")
+
 train, test = train_test_split(df, test_size=0.2, random_state=42)
 
 train.to_csv("data/train.csv", index=False)
