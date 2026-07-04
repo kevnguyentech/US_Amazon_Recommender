@@ -17,6 +17,9 @@ full_df['item_idx'] = full_df['item_id'].astype('category').cat.codes
 n_users = full_df['user_idx'].max() + 1
 n_items = full_df['item_idx'].max() + 1
 
+train_df = pd.read_csv("data/train.csv")
+valid_item_idx = torch.tensor(sorted(train_df['item_idx'].unique()), dtype=torch.long)
+
 model = TwoTowerModel(n_users, n_items, embedding_dim=16)
 model.load_state_dict(torch.load("model/two_tower.pt"))
 model.eval()
@@ -39,14 +42,14 @@ class RecommendRequest(BaseModel):
 
 @app.post("/recommend")
 def recommend(req: RecommendRequest):
-    all_items = torch.arange(n_items, dtype=torch.long)
+    all_items = valid_item_idx
     user_tensor = torch.full_like(all_items, req.user_idx)
 
     with torch.no_grad():
         preds = model(user_tensor, all_items)
 
     top_k = torch.topk(preds, req.top_k)
-    top_items = top_k.indices.tolist()
+    top_items = valid_item_idx[top_k.indices].tolist()
     top_scores = top_k.values.tolist()
 
     return {
