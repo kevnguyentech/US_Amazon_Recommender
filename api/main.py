@@ -1,6 +1,6 @@
 import pandas as pd
 import torch
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import sys
 import os
@@ -30,6 +30,10 @@ class PredictRequest(BaseModel):
 
 @app.post("/predict")
 def predict(req: PredictRequest):
+    if not (0 <= req.user_idx < n_users):
+        raise HTTPException(status_code=400, detail=f"user_idx must be in [0, {n_users})")
+    if not (0 <= req.item_idx < n_items):
+        raise HTTPException(status_code=400, detail=f"item_idx must be in [0, {n_items})")
     with torch.no_grad():
         user_tensor = torch.tensor([req.user_idx], dtype=torch.long)
         item_tensor = torch.tensor([req.item_idx], dtype=torch.long)
@@ -42,8 +46,13 @@ class RecommendRequest(BaseModel):
 
 @app.post("/recommend")
 def recommend(req: RecommendRequest):
+    if not (0 <= req.user_idx < n_users):
+        raise HTTPException(status_code=400, detail=f"user_idx must be in [0, {n_users})")
+    if not (1 <= req.top_k <= len(valid_item_idx)):
+        raise HTTPException(status_code=400, detail=f"top_k must be in [1, {len(valid_item_idx)}]")
     all_items = valid_item_idx
     user_tensor = torch.full_like(all_items, req.user_idx)
+    ...
 
     with torch.no_grad():
         preds = model(user_tensor, all_items)
