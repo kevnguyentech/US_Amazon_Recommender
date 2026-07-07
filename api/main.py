@@ -19,6 +19,13 @@ n_items = full_df['item_idx'].max() + 1
 
 train_df = pd.read_csv("data/train.csv")
 valid_item_idx = torch.tensor(sorted(train_df['item_idx'].unique()), dtype=torch.long)
+# n_users/n_items above size the embedding tables to match training, but
+# prepare.py filters out users/items with fewer than 5 ratings AFTER
+# those indices are assigned, so a user_idx/item_idx can be in-range
+# and still have an embedding that was never touched by training.
+# Validate against what was actually trained, not the raw range.
+valid_user_idx_set = set(train_df['user_idx'].unique().tolist())
+valid_item_idx_set = set(valid_item_idx.tolist())
 
 model = TwoTowerModel(n_users, n_items, embedding_dim=16)
 model.load_state_dict(torch.load("model/two_tower.pt"))
@@ -30,10 +37,10 @@ class PredictRequest(BaseModel):
 
 @app.post("/predict")
 def predict(req: PredictRequest):
-    if not (0 <= req.user_idx < n_users):
-        raise HTTPException(status_code=400, detail=f"user_idx must be in [0, {n_users})")
-    if not (0 <= req.item_idx < n_items):
-        raise HTTPException(status_code=400, detail=f"item_idx must be in [0, {n_items})")
+    if req.user_idx not in valid_user_idx_set:
+        raise HTTPException(status_code=400, detail=f"user_idx {req.user_idx} was never trained (not in training data)")
+    if req.item_idx not in valid_item_idx_set:
+        raise HTTPException(status_code=400, detail=f"item_idx {req.item_idx} was never trained (not in training data)")
     with torch.no_grad():
         user_tensor = torch.tensor([req.user_idx], dtype=torch.long)
         item_tensor = torch.tensor([req.item_idx], dtype=torch.long)
@@ -46,8 +53,8 @@ class RecommendRequest(BaseModel):
 
 @app.post("/recommend")
 def recommend(req: RecommendRequest):
-    if not (0 <= req.user_idx < n_users):
-        raise HTTPException(status_code=400, detail=f"user_idx must be in [0, {n_users})")
+    if req.user_idx not in valid_user_idx_set:
+        raise HTTPException(status_code=400, detail=f"user_idx {req.user_idx} was never trained (not in training data)")
     if not (1 <= req.top_k <= len(valid_item_idx)):
         raise HTTPException(status_code=400, detail=f"top_k must be in [1, {len(valid_item_idx)}]")
     all_items = valid_item_idx

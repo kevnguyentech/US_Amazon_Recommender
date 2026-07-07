@@ -4,11 +4,13 @@ from fastapi.testclient import TestClient
 
 client = TestClient(main.app)
 
+trained_item_idx = int(main.train_df["item_idx"].iloc[0])
+
 cases = [
     ("predict", {"user_idx": -1, "item_idx": 0}, 400),
     ("predict", {"user_idx": int(main.n_users) + 100, "item_idx": 0}, 400),
     ("predict", {"user_idx": 0, "item_idx": -1}, 400),
-    ("predict", {"user_idx": 0, "item_idx": 0}, 200),
+    ("predict", {"user_idx": 0, "item_idx": trained_item_idx}, 200),
     ("recommend", {"user_idx": -1, "top_k": 5}, 400),
     ("recommend", {"user_idx": 0, "top_k": 0}, 400),
     ("recommend", {"user_idx": 0, "top_k": 5}, 200),
@@ -19,3 +21,20 @@ cases = [
 def test_endpoint_validation(endpoint, payload, expected):
     r = client.post(f"/{endpoint}", json=payload)
     assert r.status_code == expected
+
+
+def test_untrained_but_in_range_index_is_rejected():
+    # prepare.py filters out users/items with fewer than 5 ratings AFTER
+    # user_idx/item_idx are assigned from the full raw file, so some
+    # in-range indices were never trained. Both endpoints must reject
+    # those instead of silently predicting from an untouched embedding.
+    trained_users = set(main.train_df["user_idx"].unique().tolist())
+    untrained = next((u for u in range(int(main.n_users)) if u not in trained_users), None)
+    if untrained is None:
+        pytest.skip("no untrained-but-in-range user_idx in this dataset")
+
+    r_predict = client.post("/predict", json={"user_idx": untrained, "item_idx": 0})
+    assert r_predict.status_code == 400
+
+    r_recommend = client.post("/recommend", json={"user_idx": untrained, "top_k": 5})
+    assert r_recommend.status_code == 400
