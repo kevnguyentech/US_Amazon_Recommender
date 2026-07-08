@@ -22,6 +22,8 @@ precisions = []
 
 import random
 
+random.seed(42)  # reproducible baseline; was undeterministic run to run before this
+
 random_precisions = []
 with torch.no_grad():
     for user_id, group in test_df.groupby('user_idx'):
