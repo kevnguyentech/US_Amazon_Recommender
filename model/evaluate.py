@@ -1,3 +1,5 @@
+import random
+
 import pandas as pd
 import torch
 from two_tower import TwoTowerModel
@@ -19,8 +21,6 @@ K = 5
 RELEVANCE_THRESHOLD = 4.0  # rating >= 4 counts as "relevant"
 
 precisions = []
-
-import random
 
 random.seed(42)  # reproducible baseline; was undeterministic run to run before this
 
