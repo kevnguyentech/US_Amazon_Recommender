@@ -1,36 +1,41 @@
 # data/prepare.py
+import json
+
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-df = pd.read_csv("data/amazon_reviews.csv")
 
-import json
+def main():
+    df = pd.read_csv("data/amazon_reviews.csv")
 
-user_counts = df['user_id'].value_counts()
-item_counts = df['item_id'].value_counts()
+    user_counts = df['user_id'].value_counts()
+    item_counts = df['item_id'].value_counts()
 
-df = df[df['user_id'].isin(user_counts[user_counts >= 5].index)]
-df = df[df['item_id'].isin(item_counts[item_counts >= 5].index)]
+    df = df[df['user_id'].isin(user_counts[user_counts >= 5].index)]
+    df = df[df['item_id'].isin(item_counts[item_counts >= 5].index)]
 
-# encode AFTER filtering so indices are compact (0..54k, not sparse up to ~150k)
-df['user_idx'] = df['user_id'].astype('category').cat.codes
-df['item_idx'] = df['item_id'].astype('category').cat.codes
+    # encode AFTER filtering so indices are compact (0..54k, not sparse up to ~150k)
+    df['user_idx'] = df['user_id'].astype('category').cat.codes
+    df['item_idx'] = df['item_id'].astype('category').cat.codes
 
-n_users = int(df['user_idx'].nunique())
-n_items = int(df['item_idx'].nunique())
-print(f"Users after filtering: {n_users}, Items: {n_items}")
+    n_users = int(df['user_idx'].nunique())
+    n_items = int(df['item_idx'].nunique())
+    print(f"Users after filtering: {n_users}, Items: {n_items}")
 
-with open("data/metadata.json", "w") as f:
-    json.dump({"n_users": n_users, "n_items": n_items}, f)
-print("Saved metadata.json")
+    with open("data/metadata.json", "w") as f:
+        json.dump({"n_users": n_users, "n_items": n_items}, f)
+    print("Saved metadata.json")
 
-print(f"After filtering: {df.shape}")
+    print(f"After filtering: {df.shape}")
+    print(f"Items after filtering: {df['item_id'].nunique()}")
+    print(f"Avg ratings per item: {len(df) / df['item_id'].nunique():.2f}")
 
-print(f"Items after filtering: {df['item_id'].nunique()}")
-print(f"Avg ratings per item: {len(df) / df['item_id'].nunique():.2f}")
+    train, test = train_test_split(df, test_size=0.2, random_state=42)
 
-train, test = train_test_split(df, test_size=0.2, random_state=42)
+    train.to_csv("data/train.csv", index=False)
+    test.to_csv("data/test.csv", index=False)
+    print(f"Train: {len(train)}, Test: {len(test)}")
 
-train.to_csv("data/train.csv", index=False)
-test.to_csv("data/test.csv", index=False)
-print(f"Train: {len(train)}, Test: {len(test)}")
+
+if __name__ == "__main__":
+    main()
