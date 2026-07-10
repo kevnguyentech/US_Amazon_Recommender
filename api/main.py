@@ -59,7 +59,6 @@ def recommend(req: RecommendRequest):
         raise HTTPException(status_code=400, detail=f"top_k must be in [1, {len(valid_item_idx)}]")
     all_items = valid_item_idx
     user_tensor = torch.full_like(all_items, req.user_idx)
-    ...
 
     with torch.no_grad():
         preds = model(user_tensor, all_items)
