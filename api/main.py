@@ -28,7 +28,7 @@ valid_user_idx_set = set(train_df['user_idx'].unique().tolist())
 valid_item_idx_set = set(valid_item_idx.tolist())
 
 model = TwoTowerModel(n_users, n_items, embedding_dim=16)
-model.load_state_dict(torch.load("model/two_tower.pt"))
+model.load_state_dict(torch.load("model/two_tower.pt", weights_only=True))
 model.eval()
 
 class PredictRequest(BaseModel):

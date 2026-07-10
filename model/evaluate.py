@@ -12,7 +12,7 @@ n_items = meta["n_items"]
 test_df = pd.read_csv("data/test.csv")
 
 model = TwoTowerModel(n_users, n_items, embedding_dim=16)
-model.load_state_dict(torch.load("model/two_tower.pt"))
+model.load_state_dict(torch.load("model/two_tower.pt", weights_only=True))
 model.eval()
 
 K = 5
