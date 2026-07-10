@@ -4,19 +4,25 @@ from sklearn.model_selection import train_test_split
 
 df = pd.read_csv("data/amazon_reviews.csv")
 
-df['user_idx'] = df['user_id'].astype('category').cat.codes
-df['item_idx'] = df['item_id'].astype('category').cat.codes
+import json
 
-n_users = df['user_idx'].nunique()
-n_items = df['item_idx'].nunique()
-print(f"Users: {n_users}, Items: {n_items}")
-
-# keep only users and items with at least 5 ratings
 user_counts = df['user_id'].value_counts()
 item_counts = df['item_id'].value_counts()
 
 df = df[df['user_id'].isin(user_counts[user_counts >= 5].index)]
 df = df[df['item_id'].isin(item_counts[item_counts >= 5].index)]
+
+# encode AFTER filtering so indices are compact (0..54k, not sparse up to ~150k)
+df['user_idx'] = df['user_id'].astype('category').cat.codes
+df['item_idx'] = df['item_id'].astype('category').cat.codes
+
+n_users = int(df['user_idx'].nunique())
+n_items = int(df['item_idx'].nunique())
+print(f"Users after filtering: {n_users}, Items: {n_items}")
+
+with open("data/metadata.json", "w") as f:
+    json.dump({"n_users": n_users, "n_items": n_items}, f)
+print("Saved metadata.json")
 
 print(f"After filtering: {df.shape}")
 

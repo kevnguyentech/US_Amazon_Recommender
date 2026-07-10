@@ -10,12 +10,12 @@ from two_tower import TwoTowerModel
 
 app = FastAPI()
 
-full_df = pd.read_csv("data/amazon_reviews.csv")
-full_df['user_idx'] = full_df['user_id'].astype('category').cat.codes
-full_df['item_idx'] = full_df['item_id'].astype('category').cat.codes
+import json
 
-n_users = full_df['user_idx'].max() + 1
-n_items = full_df['item_idx'].max() + 1
+with open("data/metadata.json") as f:
+    meta = json.load(f)
+n_users = meta["n_users"]
+n_items = meta["n_items"]
 
 train_df = pd.read_csv("data/train.csv")
 valid_item_idx = torch.tensor(sorted(train_df['item_idx'].unique()), dtype=torch.long)
