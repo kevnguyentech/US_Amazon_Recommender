@@ -19,11 +19,9 @@ n_items = meta["n_items"]
 
 train_df = pd.read_csv("data/train.csv")
 valid_item_idx = torch.tensor(sorted(train_df['item_idx'].unique()), dtype=torch.long)
-# n_users/n_items above size the embedding tables to match training, but
-# prepare.py filters out users/items with fewer than 5 ratings AFTER
-# those indices are assigned, so a user_idx/item_idx can be in-range
-# and still have an embedding that was never touched by training.
-# Validate against what was actually trained, not the raw range.
+# Validate against the actual set of trained indices rather than
+# the raw [0, n_users) range. Protects against metadata/checkpoint
+# drift if the model is ever retrained on a subset of users or items.
 valid_user_idx_set = set(train_df['user_idx'].unique().tolist())
 valid_item_idx_set = set(valid_item_idx.tolist())
 
