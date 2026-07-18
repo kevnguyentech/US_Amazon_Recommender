@@ -20,5 +20,5 @@ class TwoTowerModel(nn.Module):
         user_vec = self.user_embedding(user_idx)
         item_vec = self.item_embedding(item_idx)
         dot = (user_vec * item_vec).sum(dim=1)
-        bias = self.user_bias(user_idx).squeeze() + self.item_bias(item_idx).squeeze() + self.global_bias
+        bias = self.user_bias(user_idx).squeeze(1) + self.item_bias(item_idx).squeeze(1) + self.global_bias
         return dot + bias
