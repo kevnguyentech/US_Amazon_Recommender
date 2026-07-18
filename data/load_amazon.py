@@ -17,7 +17,7 @@ def main():
             "rating": row["rating"],
             "timestamp": row["timestamp"],
         })
-        if i >= SAMPLE_SIZE:
+        if i >= SAMPLE_SIZE - 1:
             break
         if i % 10_000 == 0:
             print(f"  {i} rows loaded")
