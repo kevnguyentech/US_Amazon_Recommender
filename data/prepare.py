@@ -9,9 +9,9 @@ def main():
     df = pd.read_csv("data/amazon_reviews.csv")
 
     user_counts = df['user_id'].value_counts()
-    item_counts = df['item_id'].value_counts()
-
     df = df[df['user_id'].isin(user_counts[user_counts >= 5].index)]
+
+    item_counts = df['item_id'].value_counts()
     df = df[df['item_id'].isin(item_counts[item_counts >= 5].index)]
 
     # encode AFTER filtering so indices are compact (0..54k, not sparse up to ~150k)
