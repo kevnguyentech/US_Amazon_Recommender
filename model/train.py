@@ -6,50 +6,56 @@ from two_tower import TwoTowerModel
 
 import json
 
-with open("data/metadata.json") as f:
-    meta = json.load(f)
-n_users = meta["n_users"]
-n_items = meta["n_items"]
 
-train_df = pd.read_csv("data/train.csv")
-test_df = pd.read_csv("data/test.csv")
+def main():
+    with open("data/metadata.json") as f:
+        meta = json.load(f)
+    n_users = meta["n_users"]
+    n_items = meta["n_items"]
 
-train_ds = RatingsDataset(train_df)
-test_ds = RatingsDataset(test_df)
-train_loader = DataLoader(train_ds, batch_size=1024, shuffle=True)
-test_loader = DataLoader(test_ds, batch_size=1024)
+    train_df = pd.read_csv("data/train.csv")
+    test_df = pd.read_csv("data/test.csv")
 
-model = TwoTowerModel(n_users, n_items, embedding_dim=16)
-optimizer = torch.optim.Adam(model.parameters(), lr=0.005, weight_decay=1e-4)
-loss_fn = torch.nn.MSELoss()
+    train_ds = RatingsDataset(train_df)
+    test_ds = RatingsDataset(test_df)
+    train_loader = DataLoader(train_ds, batch_size=1024, shuffle=True)
+    test_loader = DataLoader(test_ds, batch_size=1024)
 
-EPOCHS = 3
+    model = TwoTowerModel(n_users, n_items, embedding_dim=16)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.005, weight_decay=1e-4)
+    loss_fn = torch.nn.MSELoss()
 
-for epoch in range(EPOCHS):
-    model.train()
-    total_loss = 0
-    for users, items, ratings in train_loader:
-        optimizer.zero_grad()
-        preds = model(users, items)
-        loss = loss_fn(preds, ratings)
-        loss.backward()
-        optimizer.step()
-        total_loss += loss.item()
+    EPOCHS = 3
 
-    avg_loss = total_loss / len(train_loader)
-    print(f"Epoch {epoch+1}/{EPOCHS} - Train Loss: {avg_loss:.4f}")
+    for epoch in range(EPOCHS):
+        model.train()
+        total_loss = 0
+        for users, items, ratings in train_loader:
+            optimizer.zero_grad()
+            preds = model(users, items)
+            loss = loss_fn(preds, ratings)
+            loss.backward()
+            optimizer.step()
+            total_loss += loss.item()
 
-model.eval()
-total_test_loss = 0
-with torch.no_grad():
-    for users, items, ratings in test_loader:
-        preds = model(users, items)
-        loss = loss_fn(preds, ratings)
-        total_test_loss += loss.item()
+        avg_loss = total_loss / len(train_loader)
+        print(f"Epoch {epoch+1}/{EPOCHS} - Train Loss: {avg_loss:.4f}")
 
-avg_test_loss = total_test_loss / len(test_loader)
-print(f"Test Loss (MSE): {avg_test_loss:.4f}")
-print(f"Test RMSE: {avg_test_loss ** 0.5:.4f}")
+    model.eval()
+    total_test_loss = 0
+    with torch.no_grad():
+        for users, items, ratings in test_loader:
+            preds = model(users, items)
+            loss = loss_fn(preds, ratings)
+            total_test_loss += loss.item()
 
-torch.save(model.state_dict(), "model/two_tower.pt")
-print("Model saved.")
+    avg_test_loss = total_test_loss / len(test_loader)
+    print(f"Test Loss (MSE): {avg_test_loss:.4f}")
+    print(f"Test RMSE: {avg_test_loss ** 0.5:.4f}")
+
+    torch.save(model.state_dict(), "model/two_tower.pt")
+    print("Model saved.")
+
+
+if __name__ == "__main__":
+    main()
