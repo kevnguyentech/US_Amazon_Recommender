@@ -21,7 +21,8 @@ def main():
     train_loader = DataLoader(train_ds, batch_size=1024, shuffle=True)
     test_loader = DataLoader(test_ds, batch_size=1024)
 
-    model = TwoTowerModel(n_users, n_items, embedding_dim=16)
+    EMBEDDING_DIM = 16
+    model = TwoTowerModel(n_users, n_items, embedding_dim=EMBEDDING_DIM)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.005, weight_decay=1e-4)
     loss_fn = torch.nn.MSELoss()
 
@@ -55,6 +56,12 @@ def main():
 
     torch.save(model.state_dict(), "model/two_tower.pt")
     print("Model saved.")
+
+    with open("data/metadata.json") as f:
+        saved_meta = json.load(f)
+    saved_meta["embedding_dim"] = EMBEDDING_DIM
+    with open("data/metadata.json", "w") as f:
+        json.dump(saved_meta, f)
 
 
 if __name__ == "__main__":

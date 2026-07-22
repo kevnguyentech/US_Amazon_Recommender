@@ -15,7 +15,8 @@ def main():
 
     test_df = pd.read_csv("data/test.csv")
 
-    model = TwoTowerModel(n_users, n_items, embedding_dim=16)
+    embedding_dim = meta["embedding_dim"]
+    model = TwoTowerModel(n_users, n_items, embedding_dim=embedding_dim)
     model.load_state_dict(torch.load("model/two_tower.pt", weights_only=True))
     model.eval()
 

@@ -25,7 +25,8 @@ valid_item_idx = torch.tensor(sorted(train_df['item_idx'].unique()), dtype=torch
 valid_user_idx_set = set(train_df['user_idx'].unique().tolist())
 valid_item_idx_set = set(valid_item_idx.tolist())
 
-model = TwoTowerModel(n_users, n_items, embedding_dim=16)
+embedding_dim = meta["embedding_dim"]
+model = TwoTowerModel(n_users, n_items, embedding_dim=embedding_dim)
 model.load_state_dict(torch.load("model/two_tower.pt", weights_only=True))
 model.eval()
 
