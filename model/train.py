@@ -44,13 +44,15 @@ def main():
 
     model.eval()
     total_test_loss = 0
+    total_samples = 0
     with torch.no_grad():
         for users, items, ratings in test_loader:
             preds = model(users, items)
             loss = loss_fn(preds, ratings)
-            total_test_loss += loss.item()
+            total_test_loss += loss.item() * len(ratings)
+            total_samples += len(ratings)
 
-    avg_test_loss = total_test_loss / len(test_loader)
+    avg_test_loss = total_test_loss / total_samples
     print(f"Test Loss (MSE): {avg_test_loss:.4f}")
     print(f"Test RMSE: {avg_test_loss ** 0.5:.4f}")
 
