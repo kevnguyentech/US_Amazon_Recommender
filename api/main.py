@@ -24,6 +24,7 @@ valid_item_idx = torch.tensor(sorted(train_df['item_idx'].unique()), dtype=torch
 # drift if the model is ever retrained on a subset of users or items.
 valid_user_idx_set = set(train_df['user_idx'].unique().tolist())
 valid_item_idx_set = set(valid_item_idx.tolist())
+del train_df
 
 embedding_dim = meta["embedding_dim"]
 model = TwoTowerModel(n_users, n_items, embedding_dim=embedding_dim)
