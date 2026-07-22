@@ -8,11 +8,14 @@ from sklearn.model_selection import train_test_split
 def main():
     df = pd.read_csv("data/amazon_reviews.csv")
 
-    user_counts = df['user_id'].value_counts()
-    df = df[df['user_id'].isin(user_counts[user_counts >= 5].index)]
-
-    item_counts = df['item_id'].value_counts()
-    df = df[df['item_id'].isin(item_counts[item_counts >= 5].index)]
+    while True:
+        prev_len = len(df)
+        user_counts = df['user_id'].value_counts()
+        df = df[df['user_id'].isin(user_counts[user_counts >= 5].index)]
+        item_counts = df['item_id'].value_counts()
+        df = df[df['item_id'].isin(item_counts[item_counts >= 5].index)]
+        if len(df) == prev_len:
+            break
 
     # encode AFTER filtering so indices are compact (0..54k, not sparse up to ~150k)
     df['user_idx'] = df['user_id'].astype('category').cat.codes
