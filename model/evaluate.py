@@ -27,7 +27,7 @@ def main():
 
     random_precisions = []
     with torch.no_grad():
-        for user_id, group in test_df.groupby('user_idx'):
+        for user_idx, group in test_df.groupby('user_idx'):
             if len(group) < K:
                 continue
             actual_ratings = group['rating'].values
@@ -41,12 +41,12 @@ def main():
 
     precisions = []
     with torch.no_grad():
-        for user_id, group in test_df.groupby('user_idx'):
+        for user_idx, group in test_df.groupby('user_idx'):
             if len(group) < K:
                 continue
 
             item_ids = torch.tensor(group['item_idx'].values, dtype=torch.long)
-            user_ids = torch.full_like(item_ids, user_id)
+            user_ids = torch.full_like(item_ids, user_idx)
 
             preds = model(user_ids, item_ids)
             top_k_idx = torch.topk(preds, K).indices
